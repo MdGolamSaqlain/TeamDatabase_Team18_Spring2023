@@ -12,7 +12,32 @@ if (isset($_POST['submit'])) {
     } else {
         // Do nothing or display a message asking the user to submit the form again
     }
-}
+}$grade_mapping = [
+    "A" => 90,
+    "A-" => 85,
+    "B+" => 80,
+    "B" => 75,
+    "B-" => 70,
+    "C+" => 65,
+    "C" => 60,
+    "C-" => 55,
+    "D+" => 50,
+    "D" => 45,
+    "F" => 43,
+];
+$grade_point_mapping = [
+    "A" => 4.0,
+    "A-" => 3.7,
+    "B+" => 3.3,
+    "B" => 3.0,
+    "B-" => 2.7,
+    "C+" => 2.3,
+    "C" => 2.0,
+    "C-" => 1.7,
+    "D+" => 1.3,
+    "D" => 1.0,
+    "F" => 0.0,
+];
 // Get status message
 if(!empty($_GET['status'])){
     switch($_GET['status']){
@@ -54,15 +79,17 @@ if(isset($_POST['importSubmit'])){
 
             // Loop through the file line by line
             while (($line = fgetcsv($csvFile)) !== FALSE) {
+                $facultyID = $_SESSION['ID'];
+
                 $studentID = $line[0];
                 $sectionNum = $line[1];
                 $semester = isset($line[2]) ? $line[2] : '';
                 $courseID = isset($line[3]) ? $line[3] : '';
                 $year = isset($line[4]) ? $line[4] : '';
                 $obtainGrade = isset($line[5]) ? $line[5] : '';
-
+ 
                    // Check whether section already exists in the database with the same sectionNum, semester, courseID, and year
-                   $prevQuery = "SELECT sectionID FROM section_t WHERE sectionNum = '$sectionNum' AND semester = '$semester' AND courseID = '$courseID' AND year = '$year'";
+                   $prevQuery = "SELECT sectionID FROM section_t WHERE sectionNum = '$sectionNum' AND semester = '$semester' AND courseID = '$courseID' AND  facultyID ='$facultyID' AND year = '$year'";
                    $prevResult = $con->query($prevQuery);
    
                    if ($prevResult->num_rows > 0) {
@@ -71,20 +98,78 @@ if(isset($_POST['importSubmit'])){
                        $sectionID = $row['sectionID'];
                    } else {
                        // Insert section data into section_t table
-                       $con->query("INSERT INTO section_t (sectionNum, semester, courseID, year) VALUES ('$sectionNum', '$semester', '$courseID', '$year')");
+                       $con->query("INSERT INTO section_t (sectionNum, semester, courseID,facultyID , year) VALUES ('$sectionNum', '$semester', '$courseID', '$facultyID','$year')");
    
                        // Get sectionID
                        $sectionID = $con->insert_id;
                    }
                 // Insert registration data into registration_t table
                 $con->query("INSERT INTO registration_t (sectionID, studentID) VALUES ('".$sectionID."', '".$studentID."')");
-
-                // Get registrationID
+         // Get registrationID
                 $registrationID = $con->insert_id;
 
+                $markObtained = $grade_mapping[$obtainGrade];
+                $totalMarksObtained = $grade_mapping[$obtainGrade];
+                $gradePoint = $grade_point_mapping[$obtainGrade];
+
               // Insert student course performance data into student_course_performance_t table
-              $con->query("INSERT INTO student_course_performance_t (registrationID, obtainGrade) VALUES ('$registrationID', '$obtainGrade')");
+              $con->query("INSERT INTO student_course_performance_t (registrationID, totalMarksObtained, gradePoint, obtainGrade) VALUES ('$registrationID', '$totalMarksObtained', '$gradePoint', '$obtainGrade')");
+
+            //insert into question_t
+            $markPerQuestion = 100;
+            
+            $coNum =random_int(1, 4);
+            $coNum2=$coNum;
+            // Insert data into question_t
+            $difficultyLevel=random_int(1, 5);
+            $questionNum = random_int(1, 4);
+            $answerNum = $questionNum ; 
+            $markPerQuestion = 100;
+            $examID=random_int(10, 16);
+            $examID2=$examID;
+
+            $con->query("INSERT INTO question_t (markPerQuestion,questionNum,difficultyLevel,examID,courseID ,coNum) VALUES ('$markPerQuestion','$questionNum', '$difficultyLevel','$examID','$courseID','$coNum')");
+            $questionID = $con->insert_id;
+
+            $sql = "SELECT programID FROM program_t WHERE programID BETWEEN 9 AND 13 ORDER BY RAND() LIMIT 1";
+            $result = $con->query($sql);
+            $row = $result->fetch_assoc();
+            $programID = $row['programID'];
+            
+
+
+            
+            // Determine the common value for ploNum and poNum
+            // $ploNum = mt_rand(1, 6);
+            $ploNum = random_int(1, 6);
+            $poNum = $ploNum;
+            // Insert data into plo_t and get the ploID
+$con->query("INSERT INTO plo_t (ploNum, programID) VALUES ('$ploNum', '$programID')");
+$ploID = $con->insert_id;
+
+// Insert data into po_t and get the poID
+$con->query("INSERT INTO po_t (poNum, programID) VALUES ('$poNum', '$programID')");
+$poID = $con->insert_id;
+
+            // Insert coNum into co_t table
+$con->query("INSERT INTO co_t (coNum, courseID, ploID, poID) VALUES ('$coNum2', ' $courseID' ,'$ploID', '$poID')");
+
+
+
+// Insert data into answer_t
+
+
+$con->query("INSERT INTO answer_t (answerNum,markObtained, registrationID, questionID,examID) VALUES ('$answerNum','$markObtained', '$registrationID', '$questionID','$examID')");
+
+
+
+
+
             }
+
+
+            
+
             
             // Close opened CSV file
             fclose($csvFile);
@@ -165,10 +250,8 @@ if($result->num_rows > 0){
 
 ?>
 
-<?php
-require_once(__DIR__."/testfunction.php");
-require_once(__DIR__."/connect.php");
-require_once(__DIR__."/user_header.php");
+<!-- <?php
+
 //echo pre($_SESSION);
 
 if (isset($_POST['submit'])) {
@@ -179,7 +262,7 @@ if (isset($_POST['submit'])) {
 
 // Fetch student data
 
-?>
+?> -->
 <!DOCTYPE html>
   <!-- Coding by CodingLab | www.codinglabweb.com -->
 <html lang="en">

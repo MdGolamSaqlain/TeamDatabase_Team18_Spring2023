@@ -177,13 +177,6 @@ if ($con->query($sql) === TRUE) {
 
 
 // Insert data into answer_t
-// $sql = "INSERT INTO answer_t (markObtained, registrationID, questionID) VALUES ('$markObtained', '$registrationID', '$questionID')";
-
-// if ($con->query($sql) === TRUE) {
-//     echo "New answer added successfully.";
-// } else {
-//     echo "Error: " . $sql . "<br>" . $con->error;
-// }
 
 $sql = "INSERT INTO answer_t (answerNum,markObtained, registrationID, questionID,examID) VALUES ('$answerNum','$markObtained', '$registrationID', '$questionID','$examID')";
 
@@ -355,11 +348,11 @@ $con->close();
                     <input type="text" class="form-control" id="input1" placeholder="Enter studentID" name="studentID" >
                 </div>
                 <div class="form-group">
-                    <label for="input2"><h4>sectionNum:</h4></label>
+                    <label for="input2"><h4>enrolledSection:</h4></label>
                     <input type="text" class="form-control" id="input2" placeholder="Enter sectionNum" name="sectionNum">
                 </div>
                 <div class="form-group">
-                    <label for="input3"><h4>semester:</h4></label>
+                    <label for="input3"><h4>enrolledSemester:</h4></label>
                     <input type="text" class="form-control" id="input3" placeholder="Enter semester" name="semester">
                 </div>
                 <div class="form-group">
@@ -367,7 +360,7 @@ $con->close();
                     <input type="text" class="form-control" id="input4" placeholder="Enter courseID" name="courseID">
                 </div>
                 <div class="form-group">
-                    <label for="input5"><h4>year:</h4></label>
+                    <label for="input5"><h4>educationalYear:</h4></label>
                     <input type="text" class="form-control" id="input5" placeholder="Enter year" name="year">
                 </div>
                 <div class="form-group">
