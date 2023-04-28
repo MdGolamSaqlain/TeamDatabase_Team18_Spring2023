@@ -227,16 +227,32 @@ if (isset($_SESSION['ID'])) {
 
     $result=mysqli_query($con,$sql);
 
-    $sql2="SELECT plo.ploNum AS ploNum, AVG((ans.markObtained/q.markPerQuestion)*100) 
-    AS percent
-    FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-    co_t AS co, plo_t AS plo, student_t AS s WHERE r.studentID=s.studentID 
-    AND r.registrationID=ans.registrationID AND ans.examID=q.examID
-    AND ans.answerNum=q.questionNum 
-    AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID
-    AND s.departmentID=(SELECT s.departmentID FROM student_t AS s 
-    WHERE s.studentID='$studentID')
-    GROUP BY plo.ploNum";
+    // $sql2="SELECT plo.ploNum AS ploNum, AVG((ans.markObtained/q.markPerQuestion)*100) 
+    // AS percent
+    // FROM registration_t AS r, answer_t AS ans, question_t AS q, 
+    // co_t AS co, plo_t AS plo, student_t AS s WHERE r.studentID=s.studentID 
+    // AND r.registrationID=ans.registrationID AND ans.examID=q.examID
+    // AND ans.answerNum=q.questionNum 
+    // AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID
+    // AND s.departmentID=(SELECT s.departmentID FROM student_t AS s 
+    // WHERE s.studentID='$studentID')
+    // GROUP BY plo.ploNum";
+
+    $sql2 = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN student_t AS s ON r.studentID = s.studentID
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE s.departmentID = (
+  SELECT s.departmentID
+  FROM student_t AS s
+  WHERE s.studentID = '$studentID'
+)
+GROUP BY plo.ploNum
+";
 
     $result2=mysqli_query($con,$sql2);
 
@@ -376,30 +392,41 @@ function drawAutumnChart() {
 function ploAnalysisWithProgramAverage(){
     <?php
 
-    $sql="SELECT plo.ploNum AS ploNum, 
-    AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-    FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-    co_t AS co, plo_t AS plo
-    WHERE r.registrationID=ans.registrationID 
-    AND ans.examID=q.examID
-    AND ans.answerNum=q.questionNum AND q.coNum=co.coNum 
-    AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-    AND r.studentID='$studentID'
-    GROUP BY plo.ploNum,r.studentID";
+   
+
+    $sql = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE r.studentID = '$studentID'
+GROUP BY plo.ploNum, r.studentID
+";
 
     $result=mysqli_query($con,$sql);
 
-    $sql2="SELECT plo.ploNum AS ploNum, 
-    AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-    FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-    co_t AS co, plo_t AS plo, student_t AS s, program_t AS p
-    WHERE r.studentID=s.studentID 
-    AND r.registrationID=ans.registrationID AND ans.examID=q.examID
-    AND ans.answerNum=q.questionNum  
-    AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-    AND s.programID=p.programID
-    AND s.programID=(SELECT s.programID FROM student_t AS s WHERE s.studentID='$studentID')
-    GROUP BY plo.ploNum";
+    
+
+    // Fetch data for the program average
+$sql2 = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN student_t AS s ON r.studentID = s.studentID
+JOIN program_t AS p ON s.programID = p.programID
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE s.programID = (
+  SELECT s.programID
+  FROM student_t AS s
+  WHERE s.studentID = '$studentID'
+)
+GROUP BY plo.ploNum, r.studentID
+";
+
 
     $result2=mysqli_query($con,$sql2);
 
@@ -481,32 +508,40 @@ function ploAnalysisWithSchoolAverage(){
 
     <?php
 
-$sql="SELECT plo.ploNum AS ploNum, 
-AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-co_t AS co, plo_t AS plo
-WHERE r.registrationID=ans.registrationID 
-AND ans.examID=q.examID
-AND ans.answerNum=q.questionNum  AND q.coNum=co.coNum 
-AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-AND r.studentID='$studentID'
-GROUP BY plo.ploNum,r.studentID";
+
+$sql = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE r.studentID = '$studentID'
+GROUP BY plo.ploNum, r.studentID
+";
 
 $result=mysqli_query($con,$sql);
 
-$sql2="SELECT plo.ploNum AS ploNum, 
-AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-co_t AS co, plo_t AS plo, student_t AS s, program_t AS p, department_t AS d
-WHERE r.studentID=s.studentID 
-AND r.registrationID=ans.registrationID AND ans.examID=q.examID
-AND ans.answerNum=q.questionNum  
-AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-AND s.departmentID=d.departmentID
-AND d.schoolID=(SELECT d.schoolID FROM student_t AS s, 
-department_t AS d WHERE s.studentID='$studentID' 
-AND s.departmentID=d.departmentID)
-GROUP BY plo.ploNum";
+
+
+
+$sql2 = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN student_t AS s ON r.studentID = s.studentID
+JOIN department_t AS d ON s.departmentID = d.departmentID
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE d.schoolID = (
+  SELECT d.schoolID
+  FROM student_t AS s
+  JOIN department_t AS d ON s.departmentID = d.departmentID
+  WHERE s.studentID = '$studentID'
+)
+GROUP BY plo.ploNum, r.studentID
+";
 
 $result2=mysqli_query($con,$sql2);
 

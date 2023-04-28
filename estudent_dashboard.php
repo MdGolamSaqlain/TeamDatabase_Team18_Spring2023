@@ -117,7 +117,7 @@ if (isset($studentID)) {
                     </li>
 
                     <li class="nav-link">
-                        <a href="spiderChart.php" target="_self">
+                        <a href="spiderChart2.php" target="_self">
                             <i class='bx bx-pie-chart-alt icon' ></i>
                             <span class="text nav-text">Spider Chart Analysis</span>
                         </a>

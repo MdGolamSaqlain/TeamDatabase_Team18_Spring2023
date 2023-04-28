@@ -109,7 +109,7 @@ if (isset($_POST['submit'])) {
             <li class="nav-link">
                 <a href="menualform.php" target="_self">
                     <i class='bx bx-bar-chart-alt-2 icon'></i>
-                    <span class="text nav-text">Menual Form</span>
+                    <span class="text nav-text">Manual Form</span>
                 </a>
                
             </li>

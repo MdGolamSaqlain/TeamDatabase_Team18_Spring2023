@@ -214,7 +214,88 @@ if (isset($_SESSION['ID'])) {
 
 <!-- Analysis with Department Average -->
 <script>
-    
+    function ploAnalysisWithDepartmentAverage(){
+    <?php
+
+    $sql="SELECT plo.ploNum AS ploNum, 
+    AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
+    FROM registration_t AS r, answer_t AS ans, question_t AS q, 
+    co_t AS co, plo_t AS plo
+    WHERE r.registrationID=ans.registrationID 
+    AND ans.examID=q.examID AND ans.answerNum=q.questionNum AND q.coNum=co.coNum 
+    AND q.courseID=co.courseID AND co.ploID=plo.ploID 
+    AND r.studentID='$studentID'
+    GROUP BY plo.ploNum,r.studentID";
+
+    $result=mysqli_query($con,$sql);
+
+    $sql2="SELECT plo.ploNum AS ploNum, AVG((ans.markObtained/q.markPerQuestion)*100) 
+    AS percent
+    FROM registration_t AS r, answer_t AS ans, question_t AS q, 
+    co_t AS co, plo_t AS plo, student_t AS s WHERE r.studentID=s.studentID 
+    AND r.registrationID=ans.registrationID AND ans.examID=q.examID
+    AND ans.answerNum=q.questionNum 
+    AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID
+    AND s.departmentID=(SELECT s.departmentID FROM student_t AS s 
+    WHERE s.studentID='$studentID')
+    GROUP BY plo.ploNum";
+
+    $result2=mysqli_query($con,$sql2);
+
+    ?>
+
+
+
+google.charts.load("current", { packages: ["corechart"] });
+google.charts.setOnLoadCallback(drawAutumnChart);
+
+function drawAutumnChart() {
+  var data = google.visualization.arrayToDataTable([
+    ["ploNum", "Individual", "Dept Average"],
+
+    <?php
+      while ($data = mysqli_fetch_array($result)) {
+        $data2 = mysqli_fetch_array($result2);
+        $ploNum = "PLO" . $data["ploNum"];
+        $percent = $data["percent"];
+        $percent2 = $data2["percent"];
+    ?>
+
+    ["<?php echo $ploNum; ?>", <?php echo $percent; ?>, <?php echo $percent2; ?>],
+
+    <?php
+      }
+    ?>
+  ]);
+
+  var options = {
+    title: "PLO Analysis with Department Average",
+    legend: { position: "bottom" },
+    series: {
+      0: { color: "#7f8c8d" }, // Gray
+      1: { color: "#2c3e50" }, // Dark blue-gray
+    },
+    vAxis: {
+      minValue: 0,
+      format: "0",
+      textStyle: {
+        fontSize: 12,
+      },
+      title: "Percentage",
+    },
+    hAxis: {
+      textStyle: {
+        fontSize: 12,
+      },
+      title: "PLO Number",
+    },
+  };
+
+  var chart = new google.visualization.ColumnChart(document.getElementById("Autumn"));
+  chart.draw(data, options);
+}
+    }
+   
 </script> 
 
 
@@ -323,38 +404,65 @@ function drawAutumnChart() {
 }
 </script>
 
-<!-- Analysis with School Average -->
+// <!-- Analysis with School Average -->
 <script>
 function ploAnalysisWithSchoolAverage(){
 
-    <?php
+<?php
 
-$sql="SELECT plo.ploNum AS ploNum, 
-AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-co_t AS co, plo_t AS plo
-WHERE r.registrationID=ans.registrationID 
-AND ans.examID=q.examID
-AND ans.answerNum=q.questionNum  AND q.coNum=co.coNum 
-AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-AND r.studentID='$studentID'
-GROUP BY plo.ploNum,r.studentID";
+// $sql="SELECT plo.ploNum AS ploNum, 
+// AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
+// FROM registration_t AS r, answer_t AS ans, question_t AS q, 
+// co_t AS co, plo_t AS plo
+// WHERE r.registrationID=ans.registrationID 
+// AND ans.examID=q.examID
+// AND ans.answerNum=q.questionNum  AND q.coNum=co.coNum 
+// AND q.courseID=co.courseID AND co.ploID=plo.ploID 
+// AND r.studentID='$studentID'
+// GROUP BY plo.ploNum,r.studentID";
+$sql = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE r.studentID = '$studentID'
+GROUP BY plo.ploNum, r.studentID
+";
 
 $result=mysqli_query($con,$sql);
 
-$sql2="SELECT plo.ploNum AS ploNum, 
-AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
-FROM registration_t AS r, answer_t AS ans, question_t AS q, 
-co_t AS co, plo_t AS plo, student_t AS s, program_t AS p, department_t AS d
-WHERE r.studentID=s.studentID 
-AND r.registrationID=ans.registrationID AND ans.examID=q.examID
-AND ans.answerNum=q.questionNum  
-AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID 
-AND s.departmentID=d.departmentID
-AND d.schoolID=(SELECT d.schoolID FROM student_t AS s, 
-department_t AS d WHERE s.studentID='$studentID' 
-AND s.departmentID=d.departmentID)
-GROUP BY plo.ploNum";
+// $sql2="SELECT plo.ploNum AS ploNum, 
+// AVG((ans.markObtained/q.markPerQuestion)*100) AS percent
+// FROM registration_t AS r, answer_t AS ans, question_t AS q, 
+// co_t AS co, plo_t AS plo, student_t AS s, program_t AS p, department_t AS d
+// WHERE r.studentID=s.studentID 
+// AND r.registrationID=ans.registrationID AND ans.examID=q.examID
+// AND ans.answerNum=q.questionNum  
+// AND q.coNum=co.coNum AND q.courseID=co.courseID AND co.ploID=plo.ploID 
+// AND s.departmentID=d.departmentID
+// AND d.schoolID=(SELECT d.schoolID FROM student_t AS s, 
+// department_t AS d WHERE s.studentID='$studentID' 
+// AND s.departmentID=d.departmentID)
+// GROUP BY plo.ploNum";
+$sql2 = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN student_t AS s ON r.studentID = s.studentID
+JOIN department_t AS d ON s.departmentID = d.departmentID
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE d.schoolID = (
+  SELECT d.schoolID
+  FROM student_t AS s
+  JOIN department_t AS d ON s.departmentID = d.departmentID
+  WHERE s.studentID = '$studentID'
+)
+GROUP BY plo.ploNum, r.studentID
+";
 
 $result2=mysqli_query($con,$sql2);
 
@@ -363,8 +471,110 @@ google.charts.load("current", { packages: ["corechart"] });
 google.charts.setOnLoadCallback(drawAutumnChart);
 
 function drawAutumnChart() {
+var data = google.visualization.arrayToDataTable([
+["ploNum", "Individual", "School Average"],
+
+<?php
+  while ($data = mysqli_fetch_array($result)) {
+    $data2 = mysqli_fetch_array($result2);
+    $ploNum = "PLO" . $data["ploNum"];
+    $percent = $data["percent"];
+    $percent2 = $data2["percent"];
+?>
+
+["<?php echo $ploNum; ?>", <?php echo $percent; ?>, <?php echo $percent2; ?>],
+
+<?php
+  }
+?>
+]);
+
+var options = {
+title: "PLO Analysis with School Average",
+legend: { position: "bottom" },
+series: {
+  0: { color: "#BCC6CC" }, // Bright pink
+  1: { color: "#4C787E" }, // Lime green
+},
+vAxis: {
+  minValue: 0,
+  format: "0",
+  textStyle: {
+    fontSize: 12,
+  },
+  title: "Percentage",
+},
+hAxis: {
+  textStyle: {
+    fontSize: 12,
+  },
+  title: "PLO Number",
+},
+};
+
+var chart = new google.visualization.ColumnChart(document.getElementById("Autumn"));
+chart.draw(data, options);
+}
+
+
+
+
+
+
+
+}
+</script>
+<script>
+
+  // program avarage
+function ploAnalysisWithProgramAverage(){
+    <?php
+
+   
+
+    $sql = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE r.studentID = '$studentID'
+GROUP BY plo.ploNum, r.studentID
+";
+
+    $result=mysqli_query($con,$sql);
+
+    
+
+    // Fetch data for the program average
+$sql2 = "
+SELECT plo.ploNum AS ploNum, AVG((ans.markObtained / q.markPerQuestion) * 100) AS percent
+FROM registration_t AS r
+JOIN student_t AS s ON r.studentID = s.studentID
+JOIN program_t AS p ON s.programID = p.programID
+JOIN answer_t AS ans ON r.registrationID = ans.registrationID
+JOIN question_t AS q ON ans.examID = q.examID AND ans.answerNum = q.questionNum
+JOIN co_t AS co ON q.coNum = co.coNum AND q.courseID = co.courseID
+JOIN plo_t AS plo ON co.ploID = plo.ploID
+WHERE s.programID = (
+  SELECT s.programID
+  FROM student_t AS s
+  WHERE s.studentID = '$studentID'
+)
+GROUP BY plo.ploNum, r.studentID
+";
+
+
+    $result2=mysqli_query($con,$sql2);
+
+    ?>
+    google.charts.load("current", { packages: ["corechart"] });
+google.charts.setOnLoadCallback(drawAutumnChart);
+
+function drawAutumnChart() {
   var data = google.visualization.arrayToDataTable([
-    ["ploNum", "Individual", "School Average"],
+    ["ploNum", "Individual", "Program Average"],
 
     <?php
       while ($data = mysqli_fetch_array($result)) {
@@ -382,8 +592,12 @@ function drawAutumnChart() {
   ]);
 
   var options = {
-    title: "PLO Analysis with School Average",
+    title: "PLO Analysis with Program Average",
     legend: { position: "bottom" },
+    backgroundColor: "#f9f9f9",
+    chartArea: {
+      backgroundColor: "#f9f9f9",
+    },
     series: {
       0: { color: "#BCC6CC" }, // Bright pink
       1: { color: "#4C787E" }, // Lime green
@@ -395,12 +609,23 @@ function drawAutumnChart() {
         fontSize: 12,
       },
       title: "Percentage",
+      gridlines: {
+        color: "#e5e5e5", // Light gray gridlines
+      },
     },
     hAxis: {
       textStyle: {
         fontSize: 12,
       },
       title: "PLO Number",
+      gridlines: {
+        color: "#e5e5e5", // Light gray gridlines
+      },
+    },
+    animation: {
+      startup: true,
+      duration: 1000,
+      easing: "inAndOut",
     },
   };
 
@@ -408,12 +633,10 @@ function drawAutumnChart() {
   chart.draw(data, options);
 }
 
+    
 
 
-
-
-
-
+ 
     }
 </script>
 

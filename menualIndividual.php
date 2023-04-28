@@ -33,168 +33,13 @@ $grade_point_mapping = [
 ];
 
 
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if(isset($_POST["studentID"]) && $_POST["sectionNum"] && isset($_POST["semester"]) && isset($_POST["courseID"]) && isset($_POST["year"]) && isset($_POST["obtainGrade"])){
-
-        $facultyID = $_SESSION['ID'];
-        $studentID = $_POST["studentID"];
-        $sectionNum = $_POST["sectionNum"];
-        $semester = $_POST["semester"];
-        $courseID = $_POST["courseID"];
-        $year = $_POST["year"];
-        $obtainGrade = $_POST["obtainGrade"];
-
-        // Check if section already exists, if not insert it
-        $sql = "INSERT INTO section_t (sectionNum, semester, courseID, facultyID, year)
-                SELECT * FROM (SELECT '$sectionNum', '$semester', '$courseID','$facultyID', '$year') AS tmp
-                WHERE NOT EXISTS (
-                    SELECT sectionID FROM section_t WHERE sectionNum='$sectionNum' AND semester='$semester' AND courseID='$courseID' AND year='$year'
-                ) LIMIT 1";
-
-        if ($con->query($sql) === TRUE) {
-            echo "New section added successfully.";
-        } else {
-            echo "Error: " . $sql . "<br>" . $con->error;
-        }
-
-        // Get the sectionID for the inserted section
-        $sql = "SELECT sectionID FROM section_t WHERE sectionNum='$sectionNum' AND semester='$semester' AND courseID='$courseID' AND year='$year'";
-        $result = $con->query($sql);
-        $row = $result->fetch_assoc();
-        $sectionID = $row['sectionID'];
-
-        // Insert into registration_t table
-        $sql = "INSERT INTO registration_t (sectionID, studentID) VALUES ('$sectionID', '$studentID')";
-
-        if ($con->query($sql) === TRUE) {
-            echo "New registration added successfully.";
-        } else {
-            echo "Error: " . $sql . "<br>" . $con->error;
-        }
-
-        // Get the registrationID for the inserted registration
-        $sql = "SELECT registrationID FROM registration_t WHERE sectionID='$sectionID' AND studentID='$studentID'";
-        $result = $con->query($sql);
-        $row = $result->fetch_assoc();
-        $registrationID = $row['registrationID'];
-
-        // Insert into student_course_performance_t table
-        // $sql = "INSERT INTO student_course_performance_t (registrationID, obtainGrade) VALUES ('$registrationID', '$obtainGrade')";
-
-        // if ($con->query($sql) === TRUE) {
-        //     echo "New student_course_performance added successfully.";
-        // } else {
-        //     echo "Error: " . $sql . "<br>" . $con->error;
-        // }
-        $markObtained = $grade_mapping[$obtainGrade];
-        $totalMarksObtained = $grade_mapping[$obtainGrade];
-        $gradePoint = $grade_point_mapping[$obtainGrade];
-
-
-        $sql = "INSERT INTO student_course_performance_t (registrationID, totalMarksObtained, gradePoint, obtainGrade) VALUES ('$registrationID', '$totalMarksObtained', '$gradePoint', '$obtainGrade')";
-
-        if ($con->query($sql) === TRUE) {
-            echo "New student_course_performance added successfully.";
-        } else {
-            echo "Error: " . $sql . "<br>" . $con->error;
-        }
-        
-
-// Insert data into question_t
-        $markPerQuestion = 100;
-  // ...
-
-// Increment coNum value each time a new question is inserted
-// $coNum = isset($_SESSION['coNum']) ? ($_SESSION['coNum'] % 4) + 1 : 1;
-// $_SESSION['coNum'] = $coNum;
-$coNum =random_int(1, 4);
-$coNum2=$coNum;
-// Insert data into question_t
-$difficultyLevel=random_int(1, 5);
-$questionNum = random_int(1, 4);
-$answerNum = $questionNum ; 
-$markPerQuestion = 100;
-$examID=random_int(10, 16);
-$examID2=$examID;
-$sql = "INSERT INTO question_t (markPerQuestion,questionNum,difficultyLevel,examID,courseID ,coNum) VALUES ('$markPerQuestion','$questionNum', '$difficultyLevel','$examID','$courseID','$coNum')";
-
-if ($con->query($sql) === TRUE) {
-    echo "New question added successfully.";
-} else {
-    echo "Error: " . $sql . "<br>" . $con->error;
+// Check if user is logged in and get the ID of the student
+if(isset($_SESSION['ID']) && isset($_SESSION['userType']) && $_SESSION['userType'] == 'student'){
+    $studentID = $_SESSION['ID'];
 }
-
-// Get the questionID for the inserted question
-$questionID = $con->insert_id;
-
-
-// Select a random programID from program_t table
-$sql = "SELECT programID FROM program_t WHERE programID BETWEEN 9 AND 13 ORDER BY RAND() LIMIT 1";
-$result = $con->query($sql);
-$row = $result->fetch_assoc();
-$programID = $row['programID'];
-
-// Determine the common value for ploNum and poNum
-// $ploNum = mt_rand(1, 6);
- $ploNum = random_int(1, 6);
-$poNum = $ploNum;
-// Insert a new row into the plo_t table with the obtained programID
-$sql = "INSERT INTO plo_t (ploNum,programID) VALUES ('$ploNum','$programID')";
-if ($con->query($sql) === TRUE) {
-    $ploID = $con->insert_id;
-    echo "New ploID added to plo_t table successfully.";
-} else {
-    echo "Error: " . $sql . "<br>" . $con->error;
+else{
+    header('location:login.php');
 }
-
-// Insert a new row into the po_t table with the obtained programID
-$sql = "INSERT INTO po_t (poNum,programID) VALUES ('$ploNum','$programID')";
-if ($con->query($sql) === TRUE) {
-    $poID = $con->insert_id;
-    echo "New poID added to po_t table successfully.";
-} else {
-    echo "Error: " . $sql . "<br>" . $con->error;
-}
-
-
-// Insert coNum into co_t table
-$sql = "INSERT INTO co_t (coNum, courseID, ploID, poID) VALUES ('$coNum2', ' $courseID' ,'$ploID', '$poID')";
-
-if ($con->query($sql) === TRUE) {
-    echo "New coNum added to co_t table successfully.";
-} else {
-    echo "Error: " . $sql . "<br>" . $con->error;
-}
-
-// ...inserting backlog data
-
-
-$sql = "INSERT INTO backlog_data (studentID, sectionNum, semester, courseID, year, obtainGrade, f_employeeID, timeStamp) 
-        VALUES ('$studentID', '$sectionNum', '$semester', '$courseID', '$year', '$obtainGrade', '$facultyID', CURRENT_TIMESTAMP)";
-
-
-if (mysqli_query($con, $sql)) {
-    echo "Backlog Data inserted successfully";
-} else {
-    echo "Error inserting data: " . mysqli_error($con);
-}
-
-
-
-
-
-// Insert data into answer_t
-
-$sql = "INSERT INTO answer_t (answerNum,markObtained, registrationID, questionID,examID) VALUES ('$answerNum','$markObtained', '$registrationID', '$questionID','$examID')";
-
-if ($con->query($sql) === TRUE) {
-    echo "New answer added successfully.";
-} else {
-    echo "Error: " . $sql . "<br>" . $con->error;
-}
-
-
 
 
         // Fetch the data to display in the HTML table
@@ -207,8 +52,8 @@ if ($con->query($sql) === TRUE) {
         $result = $con->query($sql);
 
        
-    }
-}
+    
+
 
 $con->close();
 
@@ -348,35 +193,7 @@ $con->close();
         
     
         <div class="col-xs-12">
-            
 
-                <form action="menualform.php" method="post">
-                <div class="form-group">
-                    <label for="input1"><h4>studentID:</h4></label>
-                    <input type="text" class="form-control" id="input1" placeholder="Enter studentID" name="studentID" >
-                </div>
-                <div class="form-group">
-                    <label for="input2"><h4>enrolledSection:</h4></label>
-                    <input type="text" class="form-control" id="input2" placeholder="Enter sectionNum" name="sectionNum">
-                </div>
-                <div class="form-group">
-                    <label for="input3"><h4>enrolledSemester:</h4></label>
-                    <input type="text" class="form-control" id="input3" placeholder="Enter semester" name="semester">
-                </div>
-                <div class="form-group">
-                    <label for="input4"><h4>courseID:</h4></label>
-                    <input type="text" class="form-control" id="input4" placeholder="Enter courseID" name="courseID">
-                </div>
-                <div class="form-group">
-                    <label for="input5"><h4>educationalYear:</h4></label>
-                    <input type="text" class="form-control" id="input5" placeholder="Enter year" name="year">
-                </div>
-                <div class="form-group">
-                    <label for="input6"><h4>obtainGrade:</h4></label>
-                    <input type="text" class="form-control" id="input6" placeholder="Enter obtainGrade" name="obtainGrade">
-                </div>
-                <button type="submit" class="btn btn-primary" value="submit2">Submit</button>
-                </form>
 
 
 

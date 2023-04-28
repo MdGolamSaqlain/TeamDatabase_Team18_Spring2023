@@ -12,8 +12,9 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     $ID=$_POST['ID'];
     $password=$_POST['password'];
 
-    if(strlen($ID) < 5){
-        $sql="SELECT * from employee_t where employeeID='$ID' and password='$password'";
+    if(strlen($ID) <= 5){
+        // $sql="SELECT * from employee_t where employeeID='$ID' and password='$password'";
+        $sql="SELECT * from vctt where employeeID='$ID' and password='$password'";
         var_dump($_POST);
         $result=mysqli_query($con,$sql);
         if($result){
@@ -23,6 +24,7 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
                 $_SESSION['ID']=$ID;
                 $_SESSION['userType']='faculty';
                 header('location:employee_dashboard.php');
+                // header('location:estudent_dashboard.php');
             }
         }
     }else{
@@ -56,6 +58,8 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     <title>Login page</title>
     
     <style>
+
+
     </style>
 
   </head>
@@ -72,7 +76,7 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
   ?>
 
   <center>
-        <div class="form_deg">
+        <div  class="form_deg">
         <center class="title_deg">
           Login Form
           <h4>

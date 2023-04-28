@@ -100,6 +100,13 @@ if (isset($_POST['submit'])) {
                 </a>
                
             </li>
+            <li class="nav-link">
+                <a href="menualIndividual.php" target="_self">
+                    <i class='bx bx-bar-chart-alt-2 icon'></i>
+                    <span class="text nav-text">INdividualCo</span>
+                </a>
+               
+            </li>
            
             <li class="nav-link">
                 <a href="currentStudent.php" target="_self">

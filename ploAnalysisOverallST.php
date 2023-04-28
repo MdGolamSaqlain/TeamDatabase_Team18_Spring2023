@@ -154,7 +154,7 @@ if (isset($_POST['submit'])) {
 
       <div style="display:flex;justify-content:space-around" class="row2">
         <button onclick="overallPlo()" style="width:300px;margin-left:0px;" class="School-wise">Overall PLO</button>
-        <button onclick="coWisePlo()" style="width:300px;" class="Department-wise">CO Wise PLO</button>
+        <button onclick="coWisePlo()" style="width:300px;" class="Department-wise">Course Wise Co</button>
       </div>
       
     
